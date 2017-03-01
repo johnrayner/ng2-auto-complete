@@ -36,7 +36,7 @@ import { Ng2AutoComplete } from "./ng2-auto-complete";
       <li *ngIf="isLoading" class="loading">{{loadingText}}</li>
       <li *ngIf="minCharsEntered && !isLoading && !filteredList.length"
            (mousedown)="selectOne('')"
-           class="blank-item">{{noMatchFoundText || 'No Result Found'}}</li>
+           class="no-match-found">{{noMatchFoundText || 'No Result Found'}}</li>
       <li *ngIf="blankOptionText && filteredList.length"
           (mousedown)="selectOne('')"
           class="blank-item">{{blankOptionText}}</li>
@@ -123,7 +123,6 @@ export class Ng2AutoCompleteComponent implements OnInit {
   @Input("show-dropdown-on-init") showDropdownOnInit: boolean = false;
 
   @Output() valueSelected = new EventEmitter();
-  @Output() inputChanged = new EventEmitter();
   @ViewChild('autoCompleteInput') autoCompleteInput: ElementRef;
 
   el: HTMLElement;           // this component  element `<ng2-auto-complete>`
@@ -172,7 +171,6 @@ export class Ng2AutoCompleteComponent implements OnInit {
 
     // executing after user stopped typing
     this.delay(() => this.reloadList(keyword), delayMs);
-    this.inputChanged.emit(keyword);
   };
 
   showDropdownList(event: any): void {
@@ -182,6 +180,12 @@ export class Ng2AutoCompleteComponent implements OnInit {
 
   hideDropdownList(): void {
     this.dropdownVisible = false;
+  }
+  
+  findItemFromSelectValue(selectText: string): any {
+    let matchingItems = this.filteredList
+                            .filter(item => ('' + item) === selectText);
+    return matchingItems.length ? matchingItems[0] : null;
   }
 
   reloadList(keyword: string): void {
@@ -247,7 +251,6 @@ export class Ng2AutoCompleteComponent implements OnInit {
 
     switch (evt.keyCode) {
       case 27: // ESC, hide auto complete
-        //this.hideDropdownList();
         break;
 
       case 38: // UP, select the previous li el

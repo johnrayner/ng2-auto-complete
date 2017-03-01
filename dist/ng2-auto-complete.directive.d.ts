@@ -32,6 +32,7 @@ export declare class Ng2AutoCompleteDirective implements OnInit {
     acDropdownEl: HTMLElement;
     inputEl: HTMLInputElement;
     formControl: AbstractControl;
+    revertValue: any;
     constructor(resolver: ComponentFactoryResolver, renderer: Renderer, viewContainerRef: ViewContainerRef, parentForm: ControlContainer);
     ngOnInit(): void;
     ngAfterViewInit(): void;
@@ -41,7 +42,6 @@ export declare class Ng2AutoCompleteDirective implements OnInit {
     hideAutoCompleteDropdown: (event?: any) => void;
     styleAutoCompleteDropdown: () => void;
     addToStringFunction(val: any): any;
-    componentInputChanged: (val: string) => void;
     selectNewValue: (item: any) => void;
     private keydownEventHandler;
     private inputEventHandler;

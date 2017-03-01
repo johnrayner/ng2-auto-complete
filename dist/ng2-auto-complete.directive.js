@@ -32,7 +32,6 @@ var Ng2AutoCompleteDirective = (function () {
             component.blankOptionText = _this.blankOptionText;
             component.noMatchFoundText = _this.noMatchFoundText;
             component.valueSelected.subscribe(_this.selectNewValue);
-            component.inputChanged.subscribe(_this.componentInputChanged);
             _this.acDropdownEl = _this.componentRef.location.nativeElement;
             _this.acDropdownEl.style.display = "none";
             // if this element is not an input tag, move dropdown after input tag
@@ -40,6 +39,7 @@ var Ng2AutoCompleteDirective = (function () {
             if (_this.el.tagName !== "INPUT" && _this.acDropdownEl) {
                 _this.inputEl.parentElement.insertBefore(_this.acDropdownEl, _this.inputEl.nextSibling);
             }
+            _this.revertValue = typeof _this.ngModel !== "undefined" ? _this.ngModel : _this.inputEl.value;
             setTimeout(function () {
                 component.reloadList(_this.inputEl.value);
                 _this.styleAutoCompleteDropdown();
@@ -48,8 +48,19 @@ var Ng2AutoCompleteDirective = (function () {
         };
         this.hideAutoCompleteDropdown = function (event) {
             if (_this.componentRef) {
+                var currentItem = void 0;
+                var hasRevertValue = (typeof _this.revertValue !== "undefined");
+                if (_this.inputEl && hasRevertValue && _this.acceptUserInput === false) {
+                    currentItem = _this.componentRef.instance.findItemFromSelectValue(_this.inputEl.value);
+                }
                 _this.componentRef.destroy();
                 _this.componentRef = undefined;
+                if (_this.inputEl &&
+                    hasRevertValue &&
+                    _this.acceptUserInput === false &&
+                    currentItem === null) {
+                    _this.selectNewValue(_this.revertValue);
+                }
             }
         };
         this.styleAutoCompleteDropdown = function () {
@@ -70,16 +81,6 @@ var Ng2AutoCompleteDirective = (function () {
                 else {
                     _this.acDropdownEl.style.top = thisInputElBCR.height + "px";
                 }
-            }
-        };
-        this.componentInputChanged = function (val) {
-            if (_this.acceptUserInput !== false) {
-                _this.inputEl.value = val;
-                if ((_this.parentForm && _this.formControlName) || _this.extFormControl) {
-                    _this.formControl.patchValue(val);
-                }
-                (val !== _this.ngModel) && _this.ngModelChange.emit(val);
-                _this.valueChanged.emit(val);
             }
         };
         this.selectNewValue = function (item) {
@@ -147,25 +148,22 @@ var Ng2AutoCompleteDirective = (function () {
         else if (!!this.formControl && this.formControl.value) {
             this.selectNewValue(this.formControl.value[this.displayPropertyName]);
         }
-        // when somewhere else clicked, hide this autocomplete
-        //document.addEventListener("click", this.hideAutoCompleteDropdown);
     };
     Ng2AutoCompleteDirective.prototype.ngAfterViewInit = function () {
+        var _this = this;
         // if this element is not an input tag, move dropdown after input tag
         // so that it displays correctly
         this.inputEl = this.el.tagName === "INPUT" ?
             this.el : this.el.querySelector("input");
-        this.inputEl.addEventListener('focus', this.showAutoCompleteDropdown);
-        this.inputEl.addEventListener('blur', this.hideAutoCompleteDropdown);
-        this.inputEl.addEventListener('keydown', this.keydownEventHandler);
-        this.inputEl.addEventListener('input', this.inputEventHandler);
+        this.inputEl.addEventListener('focus', function (e) { return _this.showAutoCompleteDropdown(e); });
+        this.inputEl.addEventListener('blur', function (e) { return _this.hideAutoCompleteDropdown(e); });
+        this.inputEl.addEventListener('keydown', function (e) { return _this.keydownEventHandler(e); });
+        this.inputEl.addEventListener('input', function (e) { return _this.inputEventHandler(e); });
     };
     Ng2AutoCompleteDirective.prototype.ngOnDestroy = function () {
         if (this.componentRef) {
             this.componentRef.instance.valueSelected.unsubscribe();
-            this.componentRef.instance.inputChanged.unsubscribe();
         }
-        //document.removeEventListener("click", this.hideAutoCompleteDropdown);
     };
     Ng2AutoCompleteDirective.prototype.ngOnChanges = function (changes) {
         if (changes['ngModel']) {
@@ -182,7 +180,6 @@ var Ng2AutoCompleteDirective = (function () {
                 displayVal_1 = val[this.listFormatter];
             }
             else {
-                console.log(3, val.value);
                 displayVal_1 = val.value;
             }
             val.toString = function () {
@@ -197,12 +194,12 @@ var Ng2AutoCompleteDirective = (function () {
                 },] },
     ];
     /** @nocollapse */
-    Ng2AutoCompleteDirective.ctorParameters = function () { return [
+    Ng2AutoCompleteDirective.ctorParameters = [
         { type: core_1.ComponentFactoryResolver, },
         { type: core_1.Renderer, },
         { type: core_1.ViewContainerRef, },
         { type: forms_1.ControlContainer, decorators: [{ type: core_1.Optional }, { type: core_1.Host }, { type: core_1.SkipSelf },] },
-    ]; };
+    ];
     Ng2AutoCompleteDirective.propDecorators = {
         'autoCompletePlaceholder': [{ type: core_1.Input, args: ["auto-complete-placeholder",] },],
         'source': [{ type: core_1.Input, args: ["source",] },],
